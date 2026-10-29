@@ -1,13 +1,9 @@
-#!/usr/bin/env bash
-set -euo pipefail
-if ! command -v uv >/dev/null 2>&1; then
-  echo 'Missing uv: https://docs.astral.sh/uv/getting-started/installation/' >&2
-  exit 1
-fi
-# Dependencies must be downloaded once while online; --offline prevents network later.
-uv_flags=(--quiet --no-project)
-if [[ ${EARSHOT_OFFLINE:-0} == 1 ]]; then uv_flags+=(--offline); fi
-exec uv run "${uv_flags[@]}" --with ggwave --with sounddevice python - "$@" <<'PY'
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.9"
+# dependencies = ["ggwave", "sounddevice"]
+# ///
+# earshot: sound-only, one-time-code command receiver. Offline after first run: UV_OFFLINE=1 ./earshot.py
 import argparse
 import queue
 import secrets
@@ -105,4 +101,3 @@ except Exception as exc:
     sys.exit(1)
 finally:
     ggwave.free(instance)
-PY

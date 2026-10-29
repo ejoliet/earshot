@@ -18,14 +18,14 @@
 ```
   phone / any browser                          laptop terminal
  ┌─────────────────────┐                     ┌─────────────────────┐
- │  earshot.html       │   ♪♪♪ ~1.8 s ♪♪♪    │  $ ./earshot        │
+ │  earshot.html       │   ♪♪♪ ~1.8 s ♪♪♪    │  $ earshot          │
  │  code:  329921      │  ─────────────────▶ │  PAIR CODE: 329921  │
  │  cmd:   uptime      │   audible chirp     │  Received: 'uptime' │
  │  [ Send by sound ]  │                     │  Run? [y/N] y       │
  └─────────────────────┘                     └─────────────────────┘
 ```
 
-1. Run `./earshot` on the laptop. It prints a six-digit code and listens on the microphone.
+1. Run `earshot` on the laptop. It prints a six-digit code and listens on the microphone.
 2. Open `earshot.html` on the other device. Enter the code and a command. Press **Send by sound**.
 3. The laptop decodes the chirp. If the text exactly matches the allowlist, it asks you to confirm, then runs it.
 4. Each code is single use. A fresh code appears after every accepted message.
@@ -36,29 +36,31 @@ The sound modem is [ggwave](https://github.com/ggerganov/ggwave). Payloads are s
 
 ### Laptop (the receiver)
 
-Needs Python via [uv](https://docs.astral.sh/uv/getting-started/installation/) and PortAudio. One-time setup while online:
+Pick one. Both need [uv](https://docs.astral.sh/uv/); the installer adds it if missing.
 
 ```sh
-# Ubuntu / Debian
-sudo apt-get install libportaudio2
-# macOS: nothing extra, PortAudio ships with the sounddevice wheel
+# Install (uv + earshot into ~/.local/bin, deps pre-downloaded for offline use)
+curl -fsSL https://raw.githubusercontent.com/ejoliet/earshot/main/install.sh | bash
 
-chmod +x earshot
-./earshot --list-devices      # pick your microphone ID
+# Or run without installing anything
+uv run https://raw.githubusercontent.com/ejoliet/earshot/main/earshot.py
 ```
 
-Then listen:
+Linux also needs PortAudio: `sudo apt-get install libportaudio2` (Debian/Ubuntu). macOS needs nothing extra.
 
 ```sh
-./earshot                     # default microphone
-./earshot --device 2          # specific microphone
+earshot --list-devices        # pick your microphone ID
+earshot                       # default microphone
+earshot --device 2            # specific microphone
 ```
 
 Once dependencies are cached, it runs fully offline:
 
 ```sh
-EARSHOT_OFFLINE=1 ./earshot
+UV_OFFLINE=1 earshot
 ```
+
+From a clone, `./earshot.py` works the same way.
 
 ### Phone or second laptop (the sender)
 
@@ -84,7 +86,7 @@ Use your own list, one command per line, exact match only:
 
 ```sh
 printf '%s\n' 'systemctl --user restart my-service' 'journalctl --user -n 10 --no-pager' > allow.txt
-./earshot --allow-file allow.txt
+earshot --allow-file allow.txt
 ```
 
 Other options:
@@ -116,7 +118,8 @@ Treat it like shouting a command across the room to a colleague who checks a lis
 
 | File | Purpose |
 |---|---|
-| `earshot` | Receiver. Bash wrapper around a single Python script, run with `uv`. |
+| `earshot.py` | Receiver. Single Python script with inline deps (PEP 723), run with `uv`. |
+| `install.sh` | Installer for the `curl | bash` path. |
 | `earshot.html` | Sender. One static page, no build step. |
 | `logo.svg` | The icon above. |
 
